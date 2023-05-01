@@ -43,7 +43,7 @@ Usage
 -----
 
 ```
-Usage: bash ./bash-acme [options...] <domain> [ <domain> ... ]
+Usage: ./bash-acme [options...] <domain> [ <domain> ... ]
 Options:
   -e, --email EMAIL         Your email if you want that Let's Encrypt can contact you
   -h, --help                This help
