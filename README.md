@@ -55,8 +55,16 @@ Options:
 The first domain parameter should be your main domain name with the subdomains following after it.
 
 Example: ./bash-acme -e me@example.com -w www@server:/var/www/example/ example.com www.example.com
-
-Creates directory ./example.com where key and cert files are output.
+```
+bash-acme will save the key and cert files in a directory corresponding with the domain name, in the same directory as the bash-acme script.
+```
+bash-acme
+example.com
+ ├── account.key
+ ├── account.pub
+ ├── example.com.key
+ ├── example.com.csr
+ └── example.com.crt
 ```
 
 See EXAMPLES.md for sample executions and their output.
