@@ -3,12 +3,14 @@
 ##############################################################################
 #
 #
-# bacme
+# bash-acme
+# fork of bacme (https://gitlab.com/sinclair2/bacme/)
 #
 # Keep it simple shell script for requesting a certificate from the Let's
 # Encrypt CA using the ACME protocol.
 #
-# Copyright (c) 2020 Stephan Uhlmann <su@su2.info>
+# Copyright (c) 2020 Stephan Uhlmann <su@su2.info> for original (bacme)
+# Copyright (c) 2023 canerder (https://github.com/canerder) for modifications
 # Licensed under the GPL version 3, see LICENSE.txt
 #
 #
@@ -19,6 +21,8 @@
 API="https://acme-v02.api.letsencrypt.org"
 API_STAGING="https://acme-staging-v02.api.letsencrypt.org"
 
+# Directory containing this script
+DIRNAME="$(dirname -- "$0")"
 
 ##############################################################################
 # functions
@@ -28,7 +32,7 @@ usage()
 {
 	cat << EOF
 
-Usage: bacme [options...] <domain> [ <domain> ... ]
+Usage: bash-acme [options...] <domain> [ <domain> ... ]
 Options:
   -e, --email EMAIL         Your email if you want that Let's Encrypt can contact you
   -h, --help                This help
@@ -218,7 +222,7 @@ fi
 DOMAIN="${DOMAINS[0]}"
 
 log "Creating domain subdirectory ..."
-mkdir -p -- "${DOMAIN}"
+mkdir -p -- "${DIRNAME}/${DOMAIN}"
 log "Done. ${DOMAIN}/ created."
 
 
@@ -229,8 +233,8 @@ log "OK ${AGREEMENT}"
 
 # we create a new account key for each certificate request
 log "Generating account key ..."
-ACCOUNT_KEY="${DOMAIN}/account.key"
-ACCOUNT_PUB="${DOMAIN}/account.pub"
+ACCOUNT_KEY="${DIRNAME}/${DOMAIN}/account.key"
+ACCOUNT_PUB="${DIRNAME}/${DOMAIN}/account.pub"
 log "Private key: ${ACCOUNT_KEY}"
 touch "${ACCOUNT_KEY}"
 chmod 600 "${ACCOUNT_KEY}"
@@ -278,11 +282,11 @@ JWS_AUTH="\"kid\": \"${ACCOUNT_URL}\""
 
 
 log "Generating domain private key ..."
-log "Private key: ${DOMAIN}/${DOMAIN}.key"
-touch "${DOMAIN}/${DOMAIN}.key"
-chmod 600 "${DOMAIN}/${DOMAIN}.key"
-openssl genrsa 4096 > "${DOMAIN}/${DOMAIN}.key"
-chmod 400 "${DOMAIN}/${DOMAIN}.key"
+log "Private key: ${DIRNAME}/${DOMAIN}/${DOMAIN}.key"
+touch "${DIRNAME}/${DOMAIN}/${DOMAIN}.key"
+chmod 600 "${DIRNAME}/${DOMAIN}/${DOMAIN}.key"
+openssl genrsa 4096 > "${DIRNAME}/${DOMAIN}/${DOMAIN}.key"
+chmod 400 "${DIRNAME}/${DOMAIN}/${DOMAIN}.key"
 
 
 log "Creating order ..."
@@ -332,14 +336,13 @@ if [ -n "${WEBROOT}" ];
 then
 	log "Copying challenge tokens to DocumentRoot ${WEBROOT} ..."
 	(
-	cd "${DOMAIN}"
-	rm -rf ".well-known"
-	mkdir -p ".well-known/acme-challenge"
+	rm -rf "${DIRNAME}/${DOMAIN}/.well-known"
+	mkdir -p "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge"
 	for (( i=0; i < ${#DOMAINS[@]}; i++ ))
 	do
-		echo "${KEYAUTHS[$i]}" > ".well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}"
+		echo "${KEYAUTHS[$i]}" > "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}"
 	done
-	rsync -axR ".well-known/" "${WEBROOT}"
+    rsync -ax "${DIRNAME}/${DOMAIN}/.well-known/" "${WEBROOT}/.well-known"
 	)
 	log "Done"
 else
@@ -399,12 +402,22 @@ for (( i=1; i < ${#DOMAINS[@]}; i++ ))
 do
 	export SUBJALTNAME="${SUBJALTNAME},DNS:${DOMAINS[$i]}"
 done
-openssl req -new -sha256 -key "${DOMAIN}/${DOMAIN}.key" -subj "/CN=${DOMAIN}" -reqexts SAN -config "$(dirname "${0}")/openssl.conf" > "${DOMAIN}/${DOMAIN}.csr"
+
+OPENSSL_CONFIG="[ req ]
+distinguished_name = req_distinguished_name
+
+[ req_distinguished_name ]
+
+
+[ SAN ]
+subjectAltName = \$ENV::SUBJALTNAME"
+
+openssl req -new -sha256 -key "${DIRNAME}/${DOMAIN}/${DOMAIN}.key" -subj "/CN=${DOMAIN}" -reqexts SAN -config <(echo "${OPENSSL_CONFIG}") > "${DIRNAME}/${DOMAIN}/${DOMAIN}.csr"
 log "Done ${DOMAIN}/${DOMAIN}.csr"
 
 
 log "Finalizing order ..."
-CSR="$(openssl req -in "${DOMAIN}/${DOMAIN}.csr" -inform PEM -outform DER | base64url)"
+CSR="$(openssl req -in "${DIRNAME}/${DOMAIN}/${DOMAIN}.csr" -inform PEM -outform DER | base64url)"
 REQUEST="{ \"csr\": \"${CSR}\" }"
 RESPONSE="$(api_request "${FINALIZE_URL}" "${REQUEST}")"
 STATUS="$(echo "${RESPONSE}" | flatstring | sed 's/^.*"status"\:\ "\([^"]*\)".*$/\1/')"
@@ -423,7 +436,7 @@ log "OK"
 log "Downloading certificate ..."
 RESPONSE="$(api_request "${CERTIFICATE_URL}" "")"
 # Response contains the server and intermediate certificate(s). Store all in one chained file. They are in the right order already.
-echo "${RESPONSE}" | awk '/-----BEGIN CERTIFICATE-----/,0' > "${DOMAIN}/${DOMAIN}.crt"
+echo "${RESPONSE}" | awk '/-----BEGIN CERTIFICATE-----/,0' > "${DIRNAME}/${DOMAIN}/${DOMAIN}.crt"
 log "Success! Certificate with intermediates saved to: ${DOMAIN}/${DOMAIN}.crt"
 
 
@@ -431,15 +444,14 @@ if [ -n "${WEBROOT}" ];
 then
 	log "Deleting challenge tokens in DocumentRoot ${WEBROOT} ..."
 	(
-	cd "${DOMAIN}" || exit
 	INCLUDES=()
 	for (( i=0; i < ${#DOMAINS[@]}; i++ ))
 	do
-		rm ".well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}"
+		rm "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}"
 		INCLUDES+=( --include )
-		INCLUDES+=( ".well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}" )
+		INCLUDES+=( "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}" )
 	done
-	rsync -axR --delete "${INCLUDES[@]}" --exclude '.well-known/acme-challenge/*' ".well-known/" "${WEBROOT}"
+	rsync -ax --delete "${INCLUDES[@]}" --exclude "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/*" "${DIRNAME}/${DOMAIN}/.well-known/" "${WEBROOT}"
 	)
 	log "Done"
 else
