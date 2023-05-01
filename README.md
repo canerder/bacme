@@ -59,12 +59,12 @@ Example: ./bash-acme -e me@example.com -w www@server:/var/www/example/ example.c
 bash-acme will save the key and cert files in a directory corresponding with the domain name, in the same directory as the bash-acme script.
 ```
 bash-acme
-example.com
+example.com 📁
  ├── account.key
  ├── account.pub
- ├── example.com.key
+ ├── example.com.key <-- private key
  ├── example.com.csr
- └── example.com.crt
+ └── example.com.crt <-- full-chain certificate
 ```
 
 See EXAMPLES.md for sample executions and their output.
