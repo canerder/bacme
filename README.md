@@ -1,11 +1,8 @@
 bash-acme
 =====
 
-Documentation
--------------
-
-This is a "keep it simple" shell script for requesting a certificate from the
-Let's Encrypt CA using the ACME protocol.
+This is a simple shell script for requesting a certificate from the
+Let's Encrypt CA using the ACME protocol, based of of bacme.
 
 Simplifications for example are:
 
@@ -28,6 +25,13 @@ The script is intended to be easy to understand but still allow the complete
 automatic generation of a certificate.
 It is also a working small example to learn the ACME protocol.
 
+Installation
+------------
+
+To create bash-acme in current directory:
+```
+curl https://raw.githubusercontent.com/canerder/bash-acme/master/bash-acme > ./bash-acme && chmod +x ./bash-acme
+```
 
 Let's Encrypt Subscriber Agreement
 ----------------------------------
@@ -35,12 +39,11 @@ Let's Encrypt Subscriber Agreement
 By using this script you accept the Let's Encrypt Subscriber Agreement.
 The latest version can be found at https://letsencrypt.org/repository/
 
-
 Usage
 -----
 
 ```
-Usage: bacme [options...] <domain> [ <domain> ... ]
+Usage: bash ./bash-acme [options...] <domain> [ <domain> ... ]
 Options:
   -e, --email EMAIL         Your email if you want that Let's Encrypt can contact you
   -h, --help                This help
