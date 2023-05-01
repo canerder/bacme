@@ -67,7 +67,7 @@ example.com 📁
  └── example.com.crt <-- full-chain certificate
 ```
 
-See EXAMPLES.md for sample executions and their output.
+See [EXAMPLES.md](./EXAMPLES.md) for sample executions and their output.
 
 
 Useful links
