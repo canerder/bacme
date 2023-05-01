@@ -54,8 +54,9 @@ Options:
 
 The first domain parameter should be your main domain name with the subdomains following after it.
 
-Example: ./bacme -e me@example.com -w www@server:/var/www/example/ example.com www.example.com
+Example: ./bash-acme -e me@example.com -w www@server:/var/www/example/ example.com www.example.com
 
+Creates directory ./example.com where key and cert files are output.
 ```
 
 See EXAMPLES.md for sample executions and their output.
