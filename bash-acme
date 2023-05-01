@@ -4,9 +4,9 @@
 #
 #
 # bash-acme
-# fork of bacme (https://gitlab.com/sinclair2/bacme/)
+# Fork of bacme (https://gitlab.com/sinclair2/bacme/)
 #
-# Keep it simple shell script for requesting a certificate from the Let's
+# Simple shell script for requesting a certificate from the Let's
 # Encrypt CA using the ACME protocol.
 #
 # Copyright (c) 2020 Stephan Uhlmann <su@su2.info> for original (bacme)
@@ -32,7 +32,7 @@ usage()
 {
 	cat << EOF
 
-Usage: bash-acme [options...] <domain> [ <domain> ... ]
+Usage: ./bash-acme [options...] <domain> [ <domain> ... ]
 Options:
   -e, --email EMAIL         Your email if you want that Let's Encrypt can contact you
   -h, --help                This help
