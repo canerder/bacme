@@ -3,7 +3,7 @@ Execution with automatic copying of challenges to webroot
 ---------------------------------------------------------
 
 ```
-> ./bacme -w www@server:/var/www/example/ "example.com" "www.example.com"
+> ./bash-acme -w www@server:/var/www/example/ "example.com" "www.example.com"
 #### Creating domain subdirectory ...
 #### Done. example.com/ created.
 #### Getting URL of current subscriber agreement ...
@@ -54,7 +54,7 @@ Execution with manual copying of challenges to webroot
 ------------------------------------------------------
 
 ```
-> ./bacme example.com www.example.com
+> ./bash-acme example.com www.example.com
 #### Creating domain subdirectory ...
 #### Done. example.com/ created.
 #### Getting URL of current subscriber agreement ...
