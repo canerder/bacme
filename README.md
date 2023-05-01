@@ -2,7 +2,7 @@ bash-acme
 =====
 
 This is a simple shell script for requesting a certificate from the
-Let's Encrypt CA using the ACME protocol, based of of bacme.
+Let's Encrypt CA using the ACME protocol, based off of bacme.
 
 Simplifications for example are:
 
