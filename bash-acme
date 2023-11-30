@@ -444,14 +444,12 @@ if [ -n "${WEBROOT}" ];
 then
 	log "Deleting challenge tokens in DocumentRoot ${WEBROOT} ..."
 	(
-	INCLUDES=()
 	for (( i=0; i < ${#DOMAINS[@]}; i++ ))
 	do
 		rm "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}"
-		INCLUDES+=( --include )
-		INCLUDES+=( "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/${CHALLENGE_TOKENS[$i]}" )
 	done
-	rsync -ax --delete "${INCLUDES[@]}" --exclude "${DIRNAME}/${DOMAIN}/.well-known/acme-challenge/*" "${DIRNAME}/${DOMAIN}/.well-known/" "${WEBROOT}"
+	# remove acme-challenge directory
+	rm -r "${WEBROOT}/.well-known/acme-challenge"
 	)
 	log "Done"
 else
